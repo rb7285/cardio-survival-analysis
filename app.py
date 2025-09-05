@@ -1,18 +1,11 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from lifelines import KaplanMeierFitter, CoxPHFitter
-
-try:
-    from sksurv.ensemble import RandomSurvivalForest
-    from sksurv.util import Surv
-    SKSURV = True
-except:
-    SKSURV = False
 
 st.set_page_config(page_title="Survival Analysis Dashboard", layout="wide")
 st.title("🫀 General Survival Analysis Dashboard")
-
 
 uploaded = st.file_uploader("Upload dataset (CSV)", type="csv")
 
@@ -24,7 +17,6 @@ else:
     df = pd.read_csv("heart_failure_clinical_records_dataset.csv")
     df.columns = df.columns.str.lower()
 
-required = {"time", "death_event"}
 rename_map = {}
 if "event" not in df.columns and "death_event" in df.columns:
     rename_map["death_event"] = "event"
@@ -34,17 +26,25 @@ if not {"time", "event"}.issubset(df.columns):
     st.error("Dataset must contain 'time' and 'event' columns (event=0/1).")
     st.stop()
 
-st.subheader("Dataset Preview")
+st.subheader("📂 Dataset Preview")
 st.dataframe(df.head())
 
-st.subheader("Kaplan–Meier Survival Analysis")
+st.subheader("🔎 Data Exploration")
+col1, col2 = st.columns(2)
+with col1:
+    st.bar_chart(df["event"].value_counts())
+with col2:
+    fig, ax = plt.subplots()
+    sns.heatmap(df.corr(), annot=False, cmap="coolwarm", ax=ax)
+    st.pyplot(fig)
+
+st.subheader("📉 Kaplan–Meier Survival Analysis")
 kmf = KaplanMeierFitter()
 kmf.fit(durations=df["time"], event_observed=df["event"], label="All Patients")
 fig, ax = plt.subplots()
 kmf.plot_survival_function(ax=ax)
 ax.set_title("Overall Survival Curve")
 st.pyplot(fig)
-
 st.markdown(f"**Median Survival Time**: {kmf.median_survival_time_:.1f} days")
 
 categorical_cols = df.select_dtypes(include=["int","object","category","bool"]).columns.tolist()
@@ -60,8 +60,8 @@ if categorical_cols:
     ax.set_title(f"KM Curve by {strat_col}")
     st.pyplot(fig)
 
-st.subheader("Cox Proportional Hazards")
-covariates = st.multiselect("Select covariates for Cox model", [c for c in df.columns if c not in ["time","event"]])
+st.subheader("⚖️ Cox Proportional Hazards Model")
+covariates = st.multiselect("Select covariates", [c for c in df.columns if c not in ["time","event"]])
 if covariates:
     cph = CoxPHFitter()
     cph.fit(df[["time","event"]+covariates], duration_col="time", event_col="event")
