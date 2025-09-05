@@ -58,8 +58,8 @@ streamlit run app_survival.py
 Clone the repository and install dependencies:
 
 bash
-git clone https://github.com/your-username/cardiovascular-survival-analysis.git
-cd cardiovascular-survival-analysis
+git clone https://github.com/rb7285/cardio-survival-analysis.git
+cd cardio-survival-analysis
 
 pip install -r requirements.txt
 
@@ -79,5 +79,6 @@ streamlit run app_survival.py
 Kaplan–Meier analysis showed clear survival differences across subgroups
 
 Cox regression identified low ejection fraction and high serum creatinine as major risk drivers
+
 
 RSF achieved a C-index ~0.79, capturing non-linear survival patterns
